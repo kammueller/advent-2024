@@ -1,5 +1,11 @@
+@file:Suppress("unused")
+
 import java.io.File
 import kotlin.math.abs
+
+fun main() {
+    december02puzzle()
+}
 
 fun december01puzzle() {
     val fileContent = File("inputs/01-01.txt").readText()
@@ -32,6 +38,31 @@ fun december01puzzle() {
     println(similarity)
 }
 
-fun main() {
-    december01puzzle()
+fun december02puzzle() {
+    val fileContent = File("inputs/02-01.txt").readText().trim()
+
+    fun isOkay(report: String): Boolean {
+        val entries = report.split("\\s+".toRegex()).map { it.toInt() }
+        if (entries.size < 2) return true
+
+        var lastInspected = entries[0]
+        var descending = entries[1] <= entries[0]
+        for (i in 1 until entries.size) {
+            val current = entries[i]
+            if (descending) {
+                if (current >= lastInspected || current < lastInspected - 3) return false
+            } else {
+                if (current <= lastInspected || current > lastInspected + 3) return false
+            }
+            lastInspected = current
+        }
+        return true
+    }
+
+    var okay = 0
+    fileContent.split("\n").forEach {
+        if (isOkay(it)) okay++
+    }
+
+    println(okay)
 }
