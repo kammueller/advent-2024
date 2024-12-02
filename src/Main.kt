@@ -59,10 +59,62 @@ fun december02puzzle() {
         return true
     }
 
+    fun okayIfDropSecondOrLater(report: String): Boolean {
+        val entries = report.split("\\s+".toRegex()).map { it.toInt() }
+        if (entries.size < 2) return true
+
+        var alreadyDampened = false
+        var lastInspected = entries[0]
+        var descending = entries[1] <= entries[0]
+        for (i in 1 until entries.size) {
+            val current = entries[i]
+            if (descending) {
+                if (current >= lastInspected || current < lastInspected - 3) {
+                    if (alreadyDampened) {
+                        return false
+                    } else {
+                        alreadyDampened = true
+                    }
+                } else {
+                    lastInspected = current
+
+                }
+            } else {
+                if (current <= lastInspected || current > lastInspected + 3) {
+                    if (alreadyDampened) {
+                        return false
+                    } else {
+                        alreadyDampened = true
+                    }
+                } else {
+                    lastInspected = current
+                }
+            }
+        }
+        return true
+    }
+
+    fun okayIfDropFirst(report: String): Boolean {
+        val entries = report.split("\\s+".toRegex()).map { it.toInt() }
+        return isOkay(entries.drop(1).joinToString(" "))
+    }
+
+    fun okayIfDropSecond (report: String): Boolean {
+        val entries = report.split("\\s+".toRegex()).map { it.toInt() }
+        return isOkay("${entries[0]} ${entries.drop(2).joinToString(" ")}")
+    }
+
+    fun isAlmostOkay(report: String): Boolean {
+        return okayIfDropFirst(report) || okayIfDropSecond(report) || okayIfDropSecondOrLater(report)
+    }
+
     var okay = 0
+    var dampenedOk = 0
     fileContent.split("\n").forEach {
         if (isOkay(it)) okay++
+        if (isAlmostOkay(it)) dampenedOk++
     }
 
     println(okay)
+    println(dampenedOk)
 }
