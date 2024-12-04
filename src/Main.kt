@@ -3,8 +3,10 @@
 import java.io.File
 import kotlin.math.abs
 
+val debug = true
+
 fun main() {
-    december03puzzle()
+    december04puzzle()
 }
 
 fun december01puzzle() {
@@ -173,7 +175,7 @@ fun december03puzzle() {
         ++it
         // found something
         val result = pair.first * pair2.first
-        println("mul(${pair.first}, ${pair2.first}) = $result")
+        if (debug) println("mul(${pair.first}, ${pair2.first}) = $result")
         return Pair(result, it)
     }
 
@@ -183,7 +185,7 @@ fun december03puzzle() {
         }
 
         return if (fileContent.substring(startAt, startAt + 4) == "do()") {
-            println("do()")
+            if (debug) println("do()")
             Pair(true, startAt + 4)
         } else {
             Pair(false, startAt)
@@ -196,7 +198,7 @@ fun december03puzzle() {
         }
 
         return if (fileContent.substring(startAt, startAt + 7) == "don't()") {
-            println("don't()")
+            if(debug) println("don't()")
             Pair(true, startAt + 7)
         } else {
             Pair(false, startAt)
@@ -224,7 +226,7 @@ fun december03puzzle() {
                 active = false
                 it = newIt
             }
-        }else {
+        } else {
             val (found, newIt) = findDo(it)
             if (found) {
                 active = true
@@ -233,11 +235,61 @@ fun december03puzzle() {
         }
 
         val (newResult, nextIt) = findNextMultiplication(it)
-        if(active) {
+        if (active) {
             result2 += newResult
         }
         it = nextIt
     }
 
     println(result2)
+}
+
+fun december04puzzle() {
+    val rows = File("inputs/04.txt").readText().trim().split("\n")
+    val length = rows.size
+    val width = rows[0].toCharArray().size
+
+    var found = 0
+    // forward and backward
+    rows.forEach { row ->
+        for (i in 0 .. width - 4) {
+            val substring = row.substring(i, i + 4)
+            if (substring == "XMAS" || substring == "SAMX") {
+                ++found
+            }
+        }
+    }
+    if (debug) println("horizontal: $found")
+    // up and down
+    for (i in 0 .. length - 4) {
+        for (j in 0 until  width) {
+            val substring = "${rows[i][j]}${rows[i + 1][j]}${rows[i + 2][j]}${rows[i + 3][j]}"
+            if (substring == "XMAS" || substring == "SAMX") {
+                ++found
+            }
+        }
+    }
+    if (debug) println("and vertical: $found")
+    // diagonals \
+    for (i in 0 .. length - 4) {
+        for (j in 0 .. width - 4) {
+            val substring = "${rows[i][j]}${rows[i + 1][j + 1]}${rows[i + 2][j + 2]}${rows[i + 3][j + 3]}"
+            if (substring == "XMAS" || substring == "SAMX") {
+                ++found
+            }
+        }
+    }
+    if (debug) println("and right-down : $found")
+    // diagonals /
+    for (i in 0 .. length - 4) {
+        for (j in 3 until width) {
+            val substring = "${rows[i][j]}${rows[i + 1][j - 1]}${rows[i + 2][j - 2]}${rows[i + 3][j - 3]}"
+            if (substring == "XMAS" || substring == "SAMX") {
+                ++found
+            }
+        }
+    }
+    if (debug) println("and right-up : $found")
+
+    println(found)
 }
