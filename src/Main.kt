@@ -137,54 +137,107 @@ fun december03puzzle() {
     }
 
     // returns result, and next iterator (or -1 if end)
-    fun findNextInstruction(startAt: Int): Pair<Int, Int> {
+    fun findNextMultiplication(startAt: Int): Pair<Int, Int> {
         var it = startAt
-        while (it < fileContent.length - 4) {
-            // look for mul(
-            if (fileContent.substring(it, it + 4) != "mul(") {
-                ++it
-                continue
-            }
-            it += 4
-            // look for first number
-            val pair = getNumber(it)
-            if (pair == null) {
-                continue
-            }
-            it = pair.second
-            // look for ,
-            if (fileContent[it] != ',') {
-                continue
-            }
-            ++it
-            // look for second number
-            val pair2 = getNumber(it)
-            if (pair2 == null) {
-                continue
-            }
-            it = pair2.second
-            // look for (
-            if (fileContent[it] != ')') {
-                continue
-            }
-            ++it
-            // found something
-            val result = pair.first * pair2.first
-//            println("mul(${pair.first}, ${pair2.first}) = $result")
-            return Pair(result, it)
+        if (it >= fileContent.length - 4) {
+            return Pair(0, -1)
         }
-        return Pair(0, -1)
+
+        // look for mul(
+        if (fileContent.substring(it, it + 4) != "mul(") {
+            ++it
+            return Pair(0, it)
+        }
+        it += 4
+        // look for first number
+        val pair = getNumber(it)
+        if (pair == null) {
+            return Pair(0, it)
+        }
+        it = pair.second
+        // look for ,
+        if (fileContent[it] != ',') {
+            return Pair(0, it)
+        }
+        ++it
+        // look for second number
+        val pair2 = getNumber(it)
+        if (pair2 == null) {
+            return Pair(0, it)
+        }
+        it = pair2.second
+        // look for (
+        if (fileContent[it] != ')') {
+            return Pair(0, it)
+        }
+        ++it
+        // found something
+        val result = pair.first * pair2.first
+        println("mul(${pair.first}, ${pair2.first}) = $result")
+        return Pair(result, it)
     }
 
-    var result = 0
+    fun findDo(startAt: Int): Pair<Boolean, Int> {
+        if (startAt + 4 >= fileContent.length) {
+            return Pair(false, startAt)
+        }
+
+        return if (fileContent.substring(startAt, startAt + 4) == "do()") {
+            println("do()")
+            Pair(true, startAt + 4)
+        } else {
+            Pair(false, startAt)
+        }
+    }
+
+    fun findDont(startAt: Int): Pair<Boolean, Int> {
+        if (startAt + 7 >= fileContent.length) {
+            return Pair(false, startAt)
+        }
+
+        return if (fileContent.substring(startAt, startAt + 7) == "don't()") {
+            println("don't()")
+            Pair(true, startAt + 7)
+        } else {
+            Pair(false, startAt)
+        }
+    }
+
+
+    var result1 = 0
     var it = 0
-    var workToDo = fileContent.length > 4
-    while (workToDo) {
-        val (newResult, nextIt) = findNextInstruction(it)
-        result += newResult
+    while (it != -1) {
+        val (newResult, nextIt) = findNextMultiplication(it)
+        result1 += newResult
         it = nextIt
-        workToDo = it != -1
     }
 
-    println(result)
+    println(result1)
+
+    var result2 = 0
+    it = 0
+    var active = true
+    while (it != -1) {
+        if (active) {
+            val (found, newIt) = findDont(it)
+            if (found) {
+                active = false
+                it = newIt
+            }
+        }else {
+            val (found, newIt) = findDo(it)
+            if (found) {
+                active = true
+                it = newIt
+            }
+        }
+
+        val (newResult, nextIt) = findNextMultiplication(it)
+        if(active) {
+            result2 += newResult
+        }
+        it = nextIt
+    }
+
+    println(result2)
 }
