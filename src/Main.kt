@@ -4,7 +4,7 @@ import java.io.File
 import kotlin.math.abs
 
 fun main() {
-    december02puzzle()
+    december03puzzle()
 }
 
 fun december01puzzle() {
@@ -99,7 +99,7 @@ fun december02puzzle() {
         return isOkay(entries.drop(1).joinToString(" "))
     }
 
-    fun okayIfDropSecond (report: String): Boolean {
+    fun okayIfDropSecond(report: String): Boolean {
         val entries = report.split("\\s+".toRegex()).map { it.toInt() }
         return isOkay("${entries[0]} ${entries.drop(2).joinToString(" ")}")
     }
@@ -117,4 +117,74 @@ fun december02puzzle() {
 
     println(okay)
     println(dampenedOk)
+}
+
+fun december03puzzle() {
+    val fileContent = File("inputs/03.txt").readText()
+
+    // returns result and next iterator if a number was found
+    fun getNumber(startAt: Int): Pair<Int, Int>? {
+        fileContent.substring(startAt, startAt + 3).toIntOrNull()?.let {
+            return Pair(it, startAt + 3)
+        }
+        fileContent.substring(startAt, startAt + 2).toIntOrNull()?.let {
+            return Pair(it, startAt + 2)
+        }
+        fileContent.substring(startAt, startAt + 1).toIntOrNull()?.let {
+            return Pair(it, startAt + 1)
+        }
+        return null
+    }
+
+    // returns result, and next iterator (or -1 if end)
+    fun findNextInstruction(startAt: Int): Pair<Int, Int> {
+        var it = startAt
+        while (it < fileContent.length - 4) {
+            // look for mul(
+            if (fileContent.substring(it, it + 4) != "mul(") {
+                ++it
+                continue
+            }
+            it += 4
+            // look for first number
+            val pair = getNumber(it)
+            if (pair == null) {
+                continue
+            }
+            it = pair.second
+            // look for ,
+            if (fileContent[it] != ',') {
+                continue
+            }
+            ++it
+            // look for second number
+            val pair2 = getNumber(it)
+            if (pair2 == null) {
+                continue
+            }
+            it = pair2.second
+            // look for (
+            if (fileContent[it] != ')') {
+                continue
+            }
+            ++it
+            // found something
+            val result = pair.first * pair2.first
+//            println("mul(${pair.first}, ${pair2.first}) = $result")
+            return Pair(result, it)
+        }
+        return Pair(0, -1)
+    }
+
+    var result = 0
+    var it = 0
+    var workToDo = fileContent.length > 4
+    while (workToDo) {
+        val (newResult, nextIt) = findNextInstruction(it)
+        result += newResult
+        it = nextIt
+        workToDo = it != -1
+    }
+
+    println(result)
 }
