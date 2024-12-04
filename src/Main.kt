@@ -198,7 +198,7 @@ fun december03puzzle() {
         }
 
         return if (fileContent.substring(startAt, startAt + 7) == "don't()") {
-            if(debug) println("don't()")
+            if (debug) println("don't()")
             Pair(true, startAt + 7)
         } else {
             Pair(false, startAt)
@@ -252,7 +252,7 @@ fun december04puzzle() {
     var found = 0
     // forward and backward
     rows.forEach { row ->
-        for (i in 0 .. width - 4) {
+        for (i in 0..width - 4) {
             val substring = row.substring(i, i + 4)
             if (substring == "XMAS" || substring == "SAMX") {
                 ++found
@@ -261,8 +261,8 @@ fun december04puzzle() {
     }
     if (debug) println("horizontal: $found")
     // up and down
-    for (i in 0 .. length - 4) {
-        for (j in 0 until  width) {
+    for (i in 0..length - 4) {
+        for (j in 0 until width) {
             val substring = "${rows[i][j]}${rows[i + 1][j]}${rows[i + 2][j]}${rows[i + 3][j]}"
             if (substring == "XMAS" || substring == "SAMX") {
                 ++found
@@ -271,8 +271,8 @@ fun december04puzzle() {
     }
     if (debug) println("and vertical: $found")
     // diagonals \
-    for (i in 0 .. length - 4) {
-        for (j in 0 .. width - 4) {
+    for (i in 0..length - 4) {
+        for (j in 0..width - 4) {
             val substring = "${rows[i][j]}${rows[i + 1][j + 1]}${rows[i + 2][j + 2]}${rows[i + 3][j + 3]}"
             if (substring == "XMAS" || substring == "SAMX") {
                 ++found
@@ -281,7 +281,7 @@ fun december04puzzle() {
     }
     if (debug) println("and right-down : $found")
     // diagonals /
-    for (i in 0 .. length - 4) {
+    for (i in 0..length - 4) {
         for (j in 3 until width) {
             val substring = "${rows[i][j]}${rows[i + 1][j - 1]}${rows[i + 2][j - 2]}${rows[i + 3][j - 3]}"
             if (substring == "XMAS" || substring == "SAMX") {
@@ -291,5 +291,24 @@ fun december04puzzle() {
     }
     if (debug) println("and right-up : $found")
 
+    println(found)
+
+    // Part 2
+    fun isAnXMas(i: Int, j: Int): Boolean {
+        require(i >= 0 && i < length - 2)
+        require(j >= 0 && j < width - 2)
+        return rows[i+1][j+1] == 'A' &&
+            ((rows[i][j] == 'M' && rows[i+2][j+2] == 'S') || (rows[i][j] == 'S' && rows[i+2][j+2] == 'M')) &&
+            ((rows[i+2][j] == 'M' && rows[i][j+2] == 'S') || (rows[i+2][j] == 'S' && rows[i][j+2] == 'M'))
+    }
+
+    found = 0
+    for (i in 0 until length - 2) {
+        for (j in 0 until width - 2) {
+            if (isAnXMas(i, j)) {
+             ++found
+            }
+        }
+    }
     println(found)
 }
