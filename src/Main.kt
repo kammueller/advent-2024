@@ -2,11 +2,13 @@
 
 import java.io.File
 import kotlin.math.abs
+import kotlin.system.measureTimeMillis
 
-val debug = true
+const val debug = false
 
 fun main() {
-    december06puzzle()
+    val timeTaken = measureTimeMillis { december06puzzle() }
+    println("Time taken: $timeTaken ms")
 }
 
 private fun getFileContent(date: String): String {
@@ -344,7 +346,7 @@ fun december06puzzle() {
 
     var pos: Pair<Int, Int> = start
     var looking = Direction.UP
-    val visited = Array(length) { Array(width) { false } }
+    var visited = Array(length) { Array(width) { mutableSetOf<Direction>() } }
 
     fun withinBounds(i: Int, j: Int): Boolean {
         return (0 until length).contains(i) && (0 until width).contains(j)
@@ -352,6 +354,11 @@ fun december06puzzle() {
 
     fun isObstacle(i: Int, j: Int): Boolean {
         return withinBounds(i, j) && obstacles[i][j]
+    }
+
+    fun beenHere(i: Int, j: Int): Boolean {
+        require(withinBounds(i, j))
+        return visited[i][j].contains(looking)
     }
 
     fun getNextPos(i: Int, j: Int): Pair<Int, Int> {
@@ -373,8 +380,10 @@ fun december06puzzle() {
         return Pair(newX, newY)
     }
 
-    fun markVisited(pos: Pair<Int, Int>) {
-        visited[pos.first][pos.second] = true
+    fun markVisited(pos: Pair<Int, Int>, allowDoubles: Boolean = false) {
+        val visitedSet = visited[pos.first][pos.second]
+        require(allowDoubles || !visitedSet.contains(looking))
+        visitedSet.add(looking)
     }
 
     while (withinBounds(pos.first, pos.second)) {
@@ -383,6 +392,49 @@ fun december06puzzle() {
         if (debug) println("walked to ${pos.first} x ${pos.second}")
     }
 
-    val nrVisited = visited.sumOf { row -> row.count { it } }
+    val nrVisited = visited.sumOf { row -> row.count { !it.isEmpty() } }
     println(nrVisited)
+    require(debug || nrVisited == 5404)
+
+    // Part 2
+
+    fun reset() {
+        pos = start
+        looking = Direction.UP
+        visited = Array(length) { Array(width) { mutableSetOf<Direction>() } }
+    }
+
+    fun makesLoop(i: Int, j: Int): Boolean {
+        require(!obstacles[i][j])
+        obstacles[i][j] = true
+
+        while (withinBounds(pos.first, pos.second) && !beenHere(pos.first, pos.second)) {
+            markVisited(pos, true)
+            pos = getNextPos(pos.first, pos.second)
+        }
+
+        obstacles[i][j] = false
+        val isLoop = withinBounds(pos.first, pos.second)
+        if (debug && isLoop) println("loop found with obstacle $i x $j")
+        return isLoop
+    }
+
+    val candidates = mutableListOf<Pair<Int, Int>>()
+    for (i in 0 until length) {
+        for (j in 0 until width) {
+            if (visited[i][j].isNotEmpty()) {
+                candidates.add(Pair(i, j))
+            }
+        }
+    }
+    require(candidates.size == nrVisited)
+
+    var nrOptions = 0
+    candidates.forEach { (i, j) ->
+        reset()
+        if (makesLoop(i, j)) {
+            ++nrOptions
+        }
+    }
+    println(nrOptions)
 }
