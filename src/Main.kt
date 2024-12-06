@@ -6,7 +6,12 @@ import kotlin.math.abs
 val debug = true
 
 fun main() {
-    december04puzzle()
+    december06puzzle()
+}
+
+private fun getFileContent(date: String): String {
+    val fileContent = File("inputs/$date.txt").readText().trimIndent()
+    return fileContent
 }
 
 fun december01puzzle() {
@@ -297,18 +302,87 @@ fun december04puzzle() {
     fun isAnXMas(i: Int, j: Int): Boolean {
         require(i >= 0 && i < length - 2)
         require(j >= 0 && j < width - 2)
-        return rows[i+1][j+1] == 'A' &&
-            ((rows[i][j] == 'M' && rows[i+2][j+2] == 'S') || (rows[i][j] == 'S' && rows[i+2][j+2] == 'M')) &&
-            ((rows[i+2][j] == 'M' && rows[i][j+2] == 'S') || (rows[i+2][j] == 'S' && rows[i][j+2] == 'M'))
+        return rows[i + 1][j + 1] == 'A' &&
+            ((rows[i][j] == 'M' && rows[i + 2][j + 2] == 'S') || (rows[i][j] == 'S' && rows[i + 2][j + 2] == 'M')) &&
+            ((rows[i + 2][j] == 'M' && rows[i][j + 2] == 'S') || (rows[i + 2][j] == 'S' && rows[i][j + 2] == 'M'))
     }
 
     found = 0
     for (i in 0 until length - 2) {
         for (j in 0 until width - 2) {
             if (isAnXMas(i, j)) {
-             ++found
+                ++found
             }
         }
     }
     println(found)
+}
+
+enum class Direction {
+    UP, DOWN, LEFT, RIGHT
+}
+
+fun december06puzzle() {
+    val fileContent = getFileContent("06")
+    val rows = fileContent.split("\n")
+    val length = rows.size
+    val width = rows[0].length
+
+    val obstacles = Array(length) { Array(width) { false } }
+    var start: Pair<Int, Int>? = null
+
+    for (i in 0 until length) {
+        for (j in 0 until width) {
+            obstacles[i][j] = rows[i][j] == '#'
+            if (rows[i][j] == '^') {
+                start = Pair(i, j)
+            }
+        }
+    }
+    require(start != null)
+    if (debug) println("start: ${start.first} x ${start.second}")
+
+    var pos: Pair<Int, Int> = start
+    var looking = Direction.UP
+    val visited = Array(length) { Array(width) { false } }
+
+    fun withinBounds(i: Int, j: Int): Boolean {
+        return (0 until length).contains(i) && (0 until width).contains(j)
+    }
+
+    fun isObstacle(i: Int, j: Int): Boolean {
+        return withinBounds(i, j) && obstacles[i][j]
+    }
+
+    fun getNextPos(i: Int, j: Int): Pair<Int, Int> {
+        val (newX, newY) = when (looking) {
+            Direction.UP -> Pair(i - 1, j)
+            Direction.DOWN -> Pair(i + 1, j)
+            Direction.LEFT -> Pair(i, j - 1)
+            Direction.RIGHT -> Pair(i, j + 1)
+        }
+        if (isObstacle(newX, newY)) {
+            looking = when (looking) {
+                Direction.UP -> Direction.RIGHT
+                Direction.DOWN -> Direction.LEFT
+                Direction.LEFT -> Direction.UP
+                Direction.RIGHT -> Direction.DOWN
+            }
+            return getNextPos(i, j)
+        }
+        return Pair(newX, newY)
+    }
+
+    fun markVisited(pos: Pair<Int, Int>) {
+        visited[pos.first][pos.second] = true
+    }
+
+    while (withinBounds(pos.first, pos.second)) {
+        markVisited(pos)
+        pos = getNextPos(pos.first, pos.second)
+        if (debug) println("walked to ${pos.first} x ${pos.second}")
+    }
+
+    val nrVisited = visited.sumOf { row -> row.count { it } }
+    println(nrVisited)
 }
