@@ -4,10 +4,10 @@ import java.io.File
 import kotlin.math.abs
 import kotlin.system.measureTimeMillis
 
-const val debug = false
+const val debug = true
 
 fun main() {
-    val timeTaken = measureTimeMillis { december06puzzle() }
+    val timeTaken = measureTimeMillis { december05puzzle() }
     println("Time taken: $timeTaken ms")
 }
 
@@ -318,6 +318,38 @@ fun december04puzzle() {
         }
     }
     println(found)
+}
+
+fun december05puzzle() {
+    val fileContent = getFileContent("05")
+    val (rules, tests) = fileContent.split("\n\n")
+
+    val before = mutableMapOf<Int, List<Int>>()
+    rules.split("\n").forEach { rule ->
+        val (predecessor, page) = rule.split("|")
+        before.compute(page.toInt()) { _, list -> (list ?: emptyList()) + predecessor.toInt() }
+    }
+
+    var result = 0
+    tests.split('\n').forEach { test ->
+        val pages = test.split(",").map { it.toInt() }
+        val nrPages = pages.size
+        var correct = true
+        for (i in 0 until nrPages) {
+            val page = pages[i]
+            val pagesAfter = pages.drop(i)
+            val predecessors = before[page] ?: emptyList()
+            if (pagesAfter.any { it in predecessors }) {
+                correct = false
+                break
+            }
+        }
+        if (correct) {
+            println("correct: $test")
+            result += pages[nrPages / 2]
+        }
+    }
+    println(result)
 }
 
 enum class Direction {
