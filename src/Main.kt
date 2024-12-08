@@ -4,7 +4,7 @@ import kotlin.system.measureTimeMillis
 const val debug = false
 
 fun main() {
-    val timeTaken = measureTimeMillis { december07puzzle() }
+    val timeTaken = measureTimeMillis { december08puzzle() }
     println("Time taken: $timeTaken ms")
 }
 
