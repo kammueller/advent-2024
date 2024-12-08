@@ -506,12 +506,19 @@ fun december07puzzle() {
     val fileContent = getFileContent("07")
     val equations = fileContent.split('\n')
 
-    var result = 0L
+    var withoutPipe = 0L
+    var withPipe = 0L
     equations.forEach { eq ->
         val (candidate, allNumbers) = eq.split(": ")
         val numbers = allNumbers.split(" ").map { it.toInt() }
 
-        fun addsUpTo(wanted: Long, remainingList: List<Int>): Boolean {
+        fun addsUpTo(
+            wanted: Long,
+            remainingList: List<Int>,
+            acceptPipe: Boolean,
+            currentTail: Long = remainingList.last().toLong(),
+            wantedSinceLastPipe: String,
+        ): Boolean {
             val tail = remainingList.last()
             val rest = remainingList.dropLast(1)
 
@@ -519,15 +526,33 @@ fun december07puzzle() {
             if (rest.isEmpty()) {
                 return tail.toLong() == wanted
             }
+            if (wanted < 0) {
+                return false
+            }
 
-            // sum
-            if (addsUpTo(wanted - tail, rest)) {
-                return true
+            // pipe
+            if (acceptPipe) {
+                val currentString = currentTail.toString()
+                val endsWithCurrent = wantedSinceLastPipe.endsWith(currentString)
+                    && wantedSinceLastPipe.length > currentString.length
+                if (endsWithCurrent && addsUpTo(
+                        wantedSinceLastPipe.dropLast(currentString.length).toLong(),
+                        rest,
+                        true,
+                        wantedSinceLastPipe = wantedSinceLastPipe.dropLast(currentString.length)
+                    )) {
+                    return true
+                }
             }
 
             // multiplication
             val isFactor = wanted % tail.toLong() == 0L
-            if (isFactor && addsUpTo(wanted / tail, rest)) {
+            if (isFactor && addsUpTo(wanted / tail, rest, acceptPipe, currentTail * rest.last(), wantedSinceLastPipe)) {
+                return true
+            }
+
+            // sum
+            if (addsUpTo(wanted - tail, rest, acceptPipe, currentTail + rest.last(), wantedSinceLastPipe)) {
                 return true
             }
 
@@ -535,10 +560,15 @@ fun december07puzzle() {
         }
 
         val wanted = candidate.toLong()
-        if (addsUpTo(wanted, numbers)) {
+        if (addsUpTo(wanted, numbers, false, wantedSinceLastPipe = candidate)) {
             if (debug) println("$candidate works")
-            result += wanted
+            withoutPipe += wanted
+            withPipe += wanted
+        } else if (addsUpTo(wanted, numbers, true, wantedSinceLastPipe = candidate)) {
+            if (debug) println("$candidate works with ||")
+            withPipe += wanted
         }
     }
-    println(result)
+    println(withoutPipe)
+    println(withPipe)
 }
