@@ -369,7 +369,7 @@ fun december05puzzle() {
 
             var next = 0
             if (debug) print("fixed order: ")
-            for (i in 0 .. nrPages / 2) {
+            for (i in 0..nrPages / 2) {
                 next = getNext()
                 if (debug) print("$next ")
             }
@@ -506,7 +506,39 @@ fun december07puzzle() {
     val fileContent = getFileContent("07")
     val equations = fileContent.split('\n')
 
-    var result = 0
+    var result = 0L
+    equations.forEach { eq ->
+        val (candidate, allNumbers) = eq.split(": ")
+        val numbers = allNumbers.split(" ").map { it.toInt() }
 
+        fun addsUpTo(wanted: Long, remainingList: List<Int>): Boolean {
+            val tail = remainingList.last()
+            val rest = remainingList.dropLast(1)
+
+            // end condition
+            if (rest.isEmpty()) {
+                return tail.toLong() == wanted
+            }
+
+            // sum
+            if (addsUpTo(wanted - tail, rest)) {
+                return true
+            }
+
+            // multiplication
+            val isFactor = wanted % tail.toLong() == 0L
+            if (isFactor && addsUpTo(wanted / tail, rest)) {
+                return true
+            }
+
+            return false
+        }
+
+        val wanted = candidate.toLong()
+        if (addsUpTo(wanted, numbers)) {
+            if (debug) println("$candidate works")
+            result += wanted
+        }
+    }
     println(result)
 }
