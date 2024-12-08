@@ -4,7 +4,7 @@ import java.io.File
 import kotlin.math.abs
 import kotlin.system.measureTimeMillis
 
-const val debug = true
+const val debug = false
 
 fun main() {
     val timeTaken = measureTimeMillis { december05puzzle() }
@@ -330,7 +330,8 @@ fun december05puzzle() {
         before.compute(page.toInt()) { _, list -> (list ?: emptyList()) + predecessor.toInt() }
     }
 
-    var result = 0
+    var correctMedians = 0
+    var incorrectMedians = 0
     tests.split('\n').forEach { test ->
         val pages = test.split(",").map { it.toInt() }
         val nrPages = pages.size
@@ -345,11 +346,41 @@ fun december05puzzle() {
             }
         }
         if (correct) {
-            println("correct: $test")
-            result += pages[nrPages / 2]
+            if (debug) println("correct: $test")
+            correctMedians += pages[nrPages / 2]
+        } else {
+            val relevantRules = before.filter { it.key in pages }.toMutableMap()
+            relevantRules.forEach { (page, predecessors) ->
+                relevantRules[page] = predecessors.filter { it in pages }
+            }
+            pages.forEach { page ->
+                relevantRules.computeIfAbsent(page) { emptyList() }
+            }
+            fun getNext(): Int {
+                val nextPage = relevantRules.filter { (_, predecessors) ->
+                    predecessors.isEmpty()
+                }.keys.first()
+                relevantRules.forEach { page, predecessors ->
+                    relevantRules[page] = predecessors.filter { it != nextPage }
+                }
+                relevantRules.remove(nextPage)
+                return nextPage
+            }
+
+            var next = 0
+            if (debug) print("fixed order: ")
+            for (i in 0 .. nrPages / 2) {
+                next = getNext()
+                if (debug) print("$next ")
+            }
+            if (debug) println("...")
+            incorrectMedians += next
         }
     }
-    println(result)
+    println(correctMedians)
+    println(incorrectMedians)
+
+
 }
 
 enum class Direction {
@@ -447,6 +478,7 @@ fun december06puzzle() {
 
         obstacles[i][j] = false
         val isLoop = withinBounds(pos.first, pos.second)
+        @Suppress("KotlinConstantConditions")
         if (debug && isLoop) println("loop found with obstacle $i x $j")
         return isLoop
     }
