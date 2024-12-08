@@ -516,8 +516,6 @@ fun december07puzzle() {
             wanted: Long,
             remainingList: List<Int>,
             acceptPipe: Boolean,
-            currentTail: Long = remainingList.last().toLong(),
-            wantedSinceLastPipe: String,
         ): Boolean {
             val tail = remainingList.last()
             val rest = remainingList.dropLast(1)
@@ -532,14 +530,14 @@ fun december07puzzle() {
 
             // pipe
             if (acceptPipe) {
-                val currentString = currentTail.toString()
-                val endsWithCurrent = wantedSinceLastPipe.endsWith(currentString)
-                    && wantedSinceLastPipe.length > currentString.length
+                val wantedString = wanted.toString()
+                val currentString = tail.toString()
+                val endsWithCurrent = wantedString.endsWith(currentString)
+                    && wantedString.length > currentString.length
                 if (endsWithCurrent && addsUpTo(
-                        wantedSinceLastPipe.dropLast(currentString.length).toLong(),
+                        wantedString.dropLast(currentString.length).toLong(),
                         rest,
-                        true,
-                        wantedSinceLastPipe = wantedSinceLastPipe.dropLast(currentString.length)
+                        true
                     )) {
                     return true
                 }
@@ -547,12 +545,12 @@ fun december07puzzle() {
 
             // multiplication
             val isFactor = wanted % tail.toLong() == 0L
-            if (isFactor && addsUpTo(wanted / tail, rest, acceptPipe, currentTail * rest.last(), wantedSinceLastPipe)) {
+            if (isFactor && addsUpTo(wanted / tail, rest, acceptPipe)) {
                 return true
             }
 
             // sum
-            if (addsUpTo(wanted - tail, rest, acceptPipe, currentTail + rest.last(), wantedSinceLastPipe)) {
+            if (addsUpTo(wanted - tail, rest, acceptPipe)) {
                 return true
             }
 
@@ -560,11 +558,11 @@ fun december07puzzle() {
         }
 
         val wanted = candidate.toLong()
-        if (addsUpTo(wanted, numbers, false, wantedSinceLastPipe = candidate)) {
+        if (addsUpTo(wanted, numbers, false)) {
             if (debug) println("$candidate works")
             withoutPipe += wanted
             withPipe += wanted
-        } else if (addsUpTo(wanted, numbers, true, wantedSinceLastPipe = candidate)) {
+        } else if (addsUpTo(wanted, numbers, true)) {
             if (debug) println("$candidate works with ||")
             withPipe += wanted
         }
