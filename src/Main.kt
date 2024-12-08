@@ -7,7 +7,7 @@ import kotlin.system.measureTimeMillis
 const val debug = false
 
 fun main() {
-    val timeTaken = measureTimeMillis { december05puzzle() }
+    val timeTaken = measureTimeMillis { december07puzzle() }
     println("Time taken: $timeTaken ms")
 }
 
@@ -380,7 +380,6 @@ fun december05puzzle() {
     println(correctMedians)
     println(incorrectMedians)
 
-
 }
 
 enum class Direction {
@@ -501,4 +500,13 @@ fun december06puzzle() {
         }
     }
     println(nrOptions)
+}
+
+fun december07puzzle() {
+    val fileContent = getFileContent("07")
+    val equations = fileContent.split('\n')
+
+    var result = 0
+
+    println(result)
 }
